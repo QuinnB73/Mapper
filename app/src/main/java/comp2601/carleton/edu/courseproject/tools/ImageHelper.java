@@ -33,6 +33,7 @@ public class ImageHelper {
         this.locationHelper = locationHelper;
     }
 
+    // creates a file in the external storage directory (external memory)
     @Nullable
     public File createImgFile() throws IOException {
         String dirName = "Mapper Images";
@@ -59,6 +60,7 @@ public class ImageHelper {
         context.sendBroadcast(mediaScanIntent);
     }
 
+    // add location exif data
     public void geoTagPicture(String path){
         if(locationHelper == null){
             Log.e("ImageHelper", "geotag failed.");
@@ -97,6 +99,7 @@ public class ImageHelper {
         }
     }
 
+    // decimal latitude/longitude to DecimalMinutesSeconds latitude/longitude
     public static String decToDMS(double val){
         if (val < 0){
             val = val * -1;
@@ -110,6 +113,7 @@ public class ImageHelper {
         return dmsStr;
     }
 
+    // DecimalMinutesSeconds latitude/longitude to decimal latitude/longitude
     public static Double DMStoDec(String dms, String dir){
         // ASSUMES DMS NOT DM, BUT ALL PHOTOS TAKEN BY THIS APP ARE DMS
         String[] parts = dms.split("/1,");

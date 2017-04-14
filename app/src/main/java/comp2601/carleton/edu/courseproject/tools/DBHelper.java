@@ -23,7 +23,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "mapper.db";
     private static final int    DATABASE_VERSION = 1;
 
-    // SQL create statements TODO: CHANGE THIS
+    // SQL create statements
     private static final String DATABASE_CREATE = "create table " + TABLE_NOTES + "( " +
             COLUMN_ID + " integer primary key autoincrement, " + COLUMN_TITLE + " text not null, "
             + COLUMN_NOTE + " text not null, " + COLUMN_DATE + " text not null, "

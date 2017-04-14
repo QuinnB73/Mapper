@@ -10,6 +10,7 @@ import android.os.Bundle;
  * Created by quinnbudan on 2017-04-04.
  */
 
+// Requests location information
 public class LocationHelper implements LocationListener {
     Location currentLocation = null;
     boolean  isRequesting = false;
@@ -17,6 +18,9 @@ public class LocationHelper implements LocationListener {
     public void startRequesting(LocationManager locationManager){
         String provider = locationManager.getBestProvider(new Criteria(), false);
         isRequesting = true;
+
+        // the errors here are about permissions, the app would never make it this far
+        // without the appropriate permissions
         locationManager.requestLocationUpdates(provider, 20000, 1, this);
         currentLocation = locationManager.getLastKnownLocation(provider);
 
@@ -24,6 +28,9 @@ public class LocationHelper implements LocationListener {
 
     public void stopRequesting(LocationManager locationManager){
         isRequesting = false;
+
+        // the error here is about permissions, the app would never make it this far
+        // without the appropriate permissions
         locationManager.removeUpdates(this);
     }
 

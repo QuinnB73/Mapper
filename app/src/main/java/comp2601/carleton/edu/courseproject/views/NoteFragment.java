@@ -64,21 +64,7 @@ public class NoteFragment extends Fragment {
         return rootView;
     }
 
-    private int getTargetHeight(){
-        Point size = new Point();
-        getActivity().getWindowManager().getDefaultDisplay().getSize(size);
-        double screenHeight = 0.0;
-        if (getActivity().getResources().getConfiguration().orientation ==
-                Configuration.ORIENTATION_PORTRAIT) {
-            screenHeight = size.y;
-        } else if (getActivity().getResources().getConfiguration().orientation ==
-                Configuration.ORIENTATION_LANDSCAPE){
-            screenHeight = size.x;
-        }
-        Double targetHeight = (2 * screenHeight) / 3; // 67% of screen height
-        return targetHeight.intValue();
-    }
-
+    // save the note onStop
     @Override
     public void onStop(){
         title = titleEditText.getText().toString();

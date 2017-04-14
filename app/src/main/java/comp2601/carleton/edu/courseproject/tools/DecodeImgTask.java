@@ -19,8 +19,7 @@ import comp2601.carleton.edu.courseproject.Interfaces.Observer;
  * Created by quinnbudan on 2017-03-20.
  */
 
-// TODO: USE GLIDE FOR BITMAP LOADING
-
+// Decodes images from a file, returns a bitmap, also gets exif data
 public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements Observable{
     private ArrayList<Observer> observers;
     private HashMap<String, String> metadata;
@@ -43,6 +42,7 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
         bmpW = 100;
     }
 
+    // specify width and height of the bitmap
     public DecodeImgTask(Context ctx, int bmpH, int bmpW){
         context = ctx;
         observers = new ArrayList<>();
@@ -50,6 +50,7 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
         this.bmpW = bmpW;
     }
 
+    // background task -- decoding the image
     @Override
     protected Bitmap doInBackground(String... params){
         metadata = new HashMap<>();
@@ -100,6 +101,7 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
         }
     }
 
+    // parses the exif timestamp
     private String parseTimeStamp(String parse){
         if(parse == null){
             return "ERROR";

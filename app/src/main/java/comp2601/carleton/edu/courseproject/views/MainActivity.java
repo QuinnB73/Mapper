@@ -139,12 +139,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    // Height for NoteFragment container
     private void setFragmentContainerHeight(){
         ViewGroup.LayoutParams params = fragmentContainer.getLayoutParams();
         params.height = getTargetHeight();
         fragmentContainer.setLayoutParams(params);
     }
 
+    // Calculate height based on screen size
     private int getTargetHeight(){ // dynamically change the size of note fragment
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
@@ -154,6 +156,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         return targetHeight.intValue();
     }
 
+    // Recalculate height on configuration change
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -169,6 +172,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // Start camera activity
     private void startCamera(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // make sure that the intent can be handled
@@ -196,6 +200,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // read images from external memory
     private void readImgsFromDir(){
         File[] allFiles;
         File dir = new File(Environment.getExternalStorageDirectory(), "Mapper Images");
@@ -219,6 +224,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // read the notes from the SQLite DB
     private void readNotesFromDB(){
         NoteDAO dao = new NoteDAO(getApplicationContext());
         try{
@@ -238,6 +244,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Log.e(TAG, notesFromDb.toString());
     }
 
+    // add a picture marker to the map
     private void addPictureMarker(Bitmap img, HashMap<String, String> metadata, String path){
         if(mMap == null){
             return;
@@ -287,6 +294,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         markers.add(newMarker);
     }
 
+    // add a note marker to the map
     private void addNoteMarker(NoteModel noteModel){
         Log.e(TAG, "addNoteMarker");
         if(mMap == null){
@@ -336,6 +344,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // If return from camera activity, add new marker
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == IMG_CAPTURE_REQUEST_CODE && resultCode == RESULT_OK){
@@ -350,6 +359,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // Check if notefragment open, if so close it, otherwise, do default implementation
     @Override
     public void onBackPressed(){
         if(noteFramgentIsOpen && currentNoteFragment != null){
@@ -369,6 +379,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         addNoteMarker(noteModel);
     }
 
+    // check and request all permissions required for this app
     private boolean checkPermissions(){
         ArrayList<String> permissions = new ArrayList<>();
 
@@ -419,6 +430,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // Result of asking for permissions, if any declined, close the app
+    // (Maybe find friendlier way of doing this???)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults){
@@ -444,6 +457,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // Close app
     private void killApp(){
         new AsyncTask<Void, Void, Void>(){
             @Override
@@ -470,6 +484,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         addPictureMarker(bitmap, metadata, path);
     }
 
+    // location work
     private void doUnsafeWork(){
         locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         locationHelper = new LocationHelper();
@@ -480,7 +495,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         return locationHelper;
     }
 
-    /* MapClickDelegate methods -- the click listener already removes it from the map */
+    /* MapClickDelegate methods -- the click listener already removes markers
+        from the map, DB, and memory
+    */
     @Override
     public void removeNoteMarker(Marker marker) {
         markerNoteModels.remove(marker);

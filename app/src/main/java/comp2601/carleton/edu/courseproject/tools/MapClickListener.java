@@ -24,6 +24,7 @@ import comp2601.carleton.edu.courseproject.views.MainActivity;
  * Created by quinnbudan on 2017-04-04.
  */
 
+// onClick listeners for the Google Maps
 public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         GoogleMap.OnInfoWindowClickListener{
     private static final String TAG = "MapLongClickListener";
@@ -45,6 +46,7 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         googleMap = map;
     }
 
+    // LongClick == delete marker
     @Override
     public void onMapLongClick(LatLng latLng) {
         float currZoomLevel = googleMap.getCameraPosition().zoom;
@@ -115,6 +117,7 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         }
     }
 
+    // Notify info window clicked to delegate
     @Override
     public void onInfoWindowClick(Marker marker) {
         if(markerNoteModels.containsKey(marker)){ // is note marker
@@ -124,6 +127,7 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         }
     }
 
+    // Delete from external memory
     private void deletePictureFromExtDir(String path){
         File file = new File(path);
         if(file.exists()){
@@ -138,6 +142,7 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         }
     }
 
+    // Delete from SQLite database
     private void deleteNoteFromDB(NoteModel noteModel){
         NoteDAO dao = new NoteDAO(context);
         try{

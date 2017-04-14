@@ -28,14 +28,17 @@ public class NoteDAO {
         dbHelper = new DBHelper(context);
     }
 
+    // open SQLite databsae
     public void open() throws SQLException {
         database = dbHelper.getWritableDatabase();
     }
 
+    // close SQLite databse
     public void close(){
         database.close();
     }
 
+    // Insert new note into DB
     public NoteModel createNote(NoteModel noteModel){
         ContentValues contentValues = new ContentValues();
         contentValues.put(DBHelper.COLUMN_TITLE, noteModel.getTitle());
@@ -53,12 +56,14 @@ public class NoteDAO {
         return newNote;
     }
 
+    // Delete note from DB
     public void deleteNote(NoteModel noteModel){
         long id = noteModel.getId();
         database.delete(DBHelper.TABLE_NOTES, DBHelper.COLUMN_ID + " = " + id, null);
         Log.d(TAG, "Note with id: " + id + " deleted.");
     }
 
+    // Return a list of all notes in DB
     public List<NoteModel> getAllNotes(){
         List<NoteModel> notes = new ArrayList<NoteModel>();
 
@@ -76,6 +81,7 @@ public class NoteDAO {
         return notes;
     }
 
+    // Create NoteModel from cursor
     private NoteModel cursorToNote(Cursor cursor){
         NoteModel noteModel = new NoteModel();
         noteModel.setId(cursor.getLong(0));

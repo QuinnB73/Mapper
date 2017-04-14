@@ -18,6 +18,7 @@ import comp2601.carleton.edu.courseproject.R;
  * Created by quinnbudan on 2017-04-04.
  */
 
+// Custom info window for Google Maps
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     Context context;
     HashMap<Marker, Bitmap> markerImages;
