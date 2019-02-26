@@ -1,33 +1,22 @@
 package comp2601.carleton.edu.courseproject.views;
 
 import android.app.Fragment;
-import android.content.Context;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
-import android.graphics.Point;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.LatLng;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import comp2601.carleton.edu.courseproject.R;
 import comp2601.carleton.edu.courseproject.models.NoteModel;
-import comp2601.carleton.edu.courseproject.tools.DBHelper;
 import comp2601.carleton.edu.courseproject.tools.LocationHelper;
 import comp2601.carleton.edu.courseproject.tools.NoteDAO;
 
