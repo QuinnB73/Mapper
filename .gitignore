@@ -26,3 +26,6 @@ Thumbs.db
 .idea/tasks.xml
 .idea/datasources.xml
 .idea/datasources.ids
+
+# Google Maps API Key
+app/src/*/res/values/google_maps_api.xml
