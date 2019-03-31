@@ -9,8 +9,10 @@ import android.util.Log;
 
 import com.bumptech.glide.Glide;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 import comp2601.carleton.edu.courseproject.Interfaces.Observable;
 import comp2601.carleton.edu.courseproject.Interfaces.Observer;
@@ -23,7 +25,7 @@ import comp2601.carleton.edu.courseproject.Interfaces.Observer;
 public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements Observable{
     private ArrayList<Observer> observers;
     private HashMap<String, String> metadata;
-    private Context context;
+    private WeakReference<Context> context;
     private String path;
     private int bmpH;
     private int bmpW;
@@ -34,9 +36,10 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
     public static String LON = ExifInterface.TAG_GPS_LONGITUDE;
     public static String LAT_DIR = ExifInterface.TAG_GPS_LATITUDE_REF;
     public static String LON_DIR = ExifInterface.TAG_GPS_LONGITUDE_REF;
+    private static final String TAG = "DecodeImgTask";
 
     public DecodeImgTask(Context ctx){
-        context = ctx;
+        context = new WeakReference<>(ctx);
         observers = new ArrayList<>();
         bmpH = 100;
         bmpW = 100;
@@ -44,7 +47,7 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
 
     // specify width and height of the bitmap
     public DecodeImgTask(Context ctx, int bmpH, int bmpW){
-        context = ctx;
+        context = new WeakReference<>(ctx);
         observers = new ArrayList<>();
         this.bmpH = bmpH;
         this.bmpW = bmpW;
@@ -64,24 +67,27 @@ public class DecodeImgTask extends AsyncTask <String, Void, Bitmap> implements O
             String lon = exifInterface.getAttribute(LON);
             String latDir = exifInterface.getAttribute(LAT_DIR);
             String lonDir = exifInterface.getAttribute(LON_DIR);
-            Log.d("DECODETASK", "LON: " + lon + " LAT: " + lat);
+            Log.d(TAG, "LON: " + lon + " LAT: " + lat);
             metadata.put(TITLE, title != null ? title : "NULL");
             metadata.put(TIMESTAMP, timeStamp != null ? timeStamp : "NULL");
             metadata.put(LAT, lat != null ? lat : "NULL");
             metadata.put(LON, lon != null ? lon: "NULL");
             metadata.put(LAT_DIR, latDir != null ? latDir : "NULL");
             metadata.put(LON_DIR, lonDir != null ? lonDir : "NULL");
+
         } catch (Exception e){
             e.printStackTrace();
-        } finally {
-            try {
-                Bitmap bitmap = Glide.with(context).load(params[0]).asBitmap().into(bmpH, bmpW).get();
-                return  bitmap;
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-            return null;
+            Log.e(TAG, "Failed to load metadata. Exception: " + e.getLocalizedMessage());
         }
+
+        // Try to load the image even if populating the metadata failed
+        try {
+            return Glide.with(context.get()).load(params[0]).asBitmap().into(bmpH, bmpW).get();
+        } catch (ExecutionException | InterruptedException e){
+            e.printStackTrace();
+            Log.e(TAG, "Failed to load image. Exception: " + e.getLocalizedMessage());
+        }
+        return null;
     }
 
     @Override

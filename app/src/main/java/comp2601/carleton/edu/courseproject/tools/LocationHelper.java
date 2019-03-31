@@ -12,8 +12,8 @@ import android.os.Bundle;
 
 // Requests location information
 public class LocationHelper implements LocationListener {
-    Location currentLocation = null;
-    boolean  isRequesting = false;
+    private Location currentLocation = null;
+    private boolean  isRequesting = false;
 
     public void startRequesting(LocationManager locationManager){
         String provider = locationManager.getBestProvider(new Criteria(), false);

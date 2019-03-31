@@ -8,8 +8,8 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -101,10 +101,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         infoWindowAdapter = new InfoWindowAdapter(getApplicationContext(), markerImages);
 
         // users will either write a note or take a picture from here
-        floatingMenu = (FloatingActionsMenu)findViewById(R.id.fam);
-        noteButton = (FloatingActionButton)findViewById(R.id.note_button);
-        cameraButton = (FloatingActionButton)findViewById(R.id.camera_button);
-        fragmentContainer = (FrameLayout)findViewById(R.id.fragment_conatiner);
+        floatingMenu = findViewById(R.id.fam);
+        noteButton = findViewById(R.id.note_button);
+        cameraButton = findViewById(R.id.camera_button);
+        fragmentContainer = findViewById(R.id.fragment_conatiner);
         setFragmentContainerHeight();
 
         // button for making a note
@@ -207,11 +207,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.e(TAG, "Files not there!");
                 return;
             }
-            for(int i = 0; i < allFiles.length; i++){
+            for(File file : allFiles){
                 if(filePathsFromExtDir == null){
                     filePathsFromExtDir = new ArrayList<>();
                 }
-                filePathsFromExtDir.add(allFiles[i].getPath());
+                filePathsFromExtDir.add(file.getPath());
             }
             for(int i = 0; i < filePathsFromExtDir.size(); i++){
                 DecodeImgTask decodeImgTask = new DecodeImgTask(getApplicationContext());
@@ -249,7 +249,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         /* DEMO CODE FOR NOW */
         // Ottawa: 45.42, -75.70
         // Toronto: 43.65, -79.38
-        LatLng tdot;
+        LatLng latLng;
 
         if(!metadata.get(DecodeImgTask.LON).equals("NULL") &&
                 !metadata.get(DecodeImgTask.LAT).equals("NULL")){
@@ -262,9 +262,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             double lat = ImageHelper.DMStoDec(latDMS, latDir);
 
             Log.d(TAG, "PARSED LAT: " + lat + " LON: " + lon);
-            tdot = new LatLng(lat, lon);
+            latLng = new LatLng(lat, lon);
         } else {
-            tdot = new LatLng(43.65, -79.38);
+            latLng = new LatLng(43.65, -79.38);
         }
 
         if(markers == null){
@@ -273,18 +273,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         // shiftDistance = 0.00025 IS A GOOD MARGIN
         for(int i = 0; i < markers.size(); i++){
-            if(markers.get(i).getPosition().equals(tdot)){
-                double lat = tdot.latitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                double lng = tdot.longitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                tdot = new LatLng(lat, lng);
+            if(markers.get(i).getPosition().equals(latLng)){
+                double lat = latLng.latitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
+                double lng = latLng.longitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
+                latLng = new LatLng(lat, lng);
             }
         }
-        MarkerOptions marker = new MarkerOptions().position(tdot).title(PICTURE_MARKER_CONSTANT);
+        MarkerOptions marker = new MarkerOptions().position(latLng).title(PICTURE_MARKER_CONSTANT);
         marker.snippet(metadata.get(DecodeImgTask.TIMESTAMP));
         marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
 
         Marker newMarker = mMap.addMarker(marker);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(tdot, ZOOM_LEVEL));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL));
         markerImages.put(newMarker, img);
         infoWindowAdapter.updateMarkerImageMap(markerImages);
         mapClickListener.updatePictureMarker(newMarker, path);
@@ -293,7 +293,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     // add a note marker to the map
     private void addNoteMarker(NoteModel noteModel){
-        Log.e(TAG, "addNoteMarker");
+        Log.d(TAG, "addNoteMarker");
         if(mMap == null){
            return;
         }
@@ -420,7 +420,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         Log.e(TAG, "PERMISSIONS: " + permissions.toString());
         if(!permissions.isEmpty()) {
-            requestPermissions(permissions.toArray(new String[permissions.size()]), 1);
+            requestPermissions(permissions.toArray(new String[0]), 1);
             return false;
         } else {
             return true;
@@ -438,10 +438,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if(requestCode == IMG_CAPTURE_REQUEST_CODE){
             for (String permission: permissions){
                 if(checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED){
+                    Log.d(TAG, "Closing app due to insufficient permissions.");
                     Toast.makeText(MainActivity.this, "These permissions are required for this" +
                             "app to work.", Toast.LENGTH_LONG).show();
                     didKillApp = true;
                     killApp();
+                    finishAndRemoveTask();
                     break;
                 }
             }
@@ -456,24 +458,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     // Close app
     private void killApp(){
-        new AsyncTask<Void, Void, Void>(){
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    Thread.currentThread().sleep(1000);
-                } catch (Exception e){
-                    Log.e(TAG, e.getMessage());
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
+            public void run() {
                 finishAndRemoveTask();
             }
-        }.execute();
+        }, 1000);
     }
 
     @Override

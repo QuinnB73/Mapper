@@ -33,7 +33,6 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
     private static final double FULL_ZOOMED_IN_BOUND = 0.00005;
 
     private Context context;
-    private Handler handler;
     private MapClickDelegate mapClickDelegate;
     private HashMap<Marker, NoteModel> markerNoteModels;
     private HashMap<Marker, String> markerFiles;
@@ -42,7 +41,6 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
 
     public MapClickListener(Context context, GoogleMap map){
         this.context = context;
-        handler = new Handler(context.getMainLooper());
         googleMap = map;
     }
 

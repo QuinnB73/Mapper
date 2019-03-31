@@ -1,5 +1,7 @@
 package comp2601.carleton.edu.courseproject.models;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
@@ -74,8 +76,39 @@ public class NoteModel implements Serializable {
         this.lon = lon;
     }
 
+    @NonNull
     @Override
     public String toString(){
         return title + "\n" + note + "\n" + timestamp + "\n" + lat + "\n" + lon;
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj == this) {
+            return true;
+        }
+
+        if(obj instanceof NoteModel){
+            NoteModel compNote = (NoteModel)obj;
+            return this.id == compNote.getId() &&
+                    this.title.equals(getTitle()) &&
+                    this.note.equals(compNote.getNote()) &&
+                    this.timestamp.equals(getTimestamp()) &&
+                    this.lat == compNote.getLat() &&
+                    this.lon == compNote.getLon();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash += 73 * hash + id;
+        hash += 73 * hash + title.hashCode();
+        hash += 73 * hash + note.hashCode();
+        hash += 73 * hash + timestamp.hashCode();
+        hash += 73 * hash + lat;
+        hash += 73 * hash + lon;
+        return hash;
     }
 }

@@ -20,8 +20,8 @@ import comp2601.carleton.edu.courseproject.R;
 
 // Custom info window for Google Maps
 public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
-    Context context;
-    HashMap<Marker, Bitmap> markerImages;
+    private Context context;
+    private HashMap<Marker, Bitmap> markerImages;
 
     public InfoWindowAdapter(Context context, HashMap<Marker, Bitmap> markerImages){
         this.context = context;
@@ -40,9 +40,9 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         String snippet = marker.getSnippet();
         String title = marker.getTitle();
 
-        TextView markerTitle = (TextView)v.findViewById(R.id.marker_title);
-        TextView markerText = (TextView)v.findViewById(R.id.marker_text);
-        ImageView markerImage = (ImageView)v.findViewById(R.id.marker_image);
+        TextView markerTitle = v.findViewById(R.id.marker_title);
+        TextView markerText = v.findViewById(R.id.marker_text);
+        ImageView markerImage = v.findViewById(R.id.marker_image);
 
         markerTitle.setText(title);
         markerText.setText(snippet);

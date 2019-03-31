@@ -20,17 +20,17 @@ public class NoteDAO {
     // Database fields
     private static final String TAG = "NoteDAO";
     private SQLiteDatabase database;
-    private DBHelper dbHelper;
-    private String[] columns = {DBHelper.COLUMN_ID, DBHelper.COLUMN_TITLE, DBHelper.COLUMN_NOTE,
-                                DBHelper.COLUMN_DATE, DBHelper.COLUMN_LAT, DBHelper.COLUMN_LON};
+    private NoteDBHelper noteDbHelper;
+    private String[] columns = {NoteDBHelper.COLUMN_ID, NoteDBHelper.COLUMN_TITLE, NoteDBHelper.COLUMN_NOTE,
+                                NoteDBHelper.COLUMN_DATE, NoteDBHelper.COLUMN_LAT, NoteDBHelper.COLUMN_LON};
 
     public NoteDAO(Context context){
-        dbHelper = new DBHelper(context);
+        noteDbHelper = new NoteDBHelper(context);
     }
 
     // open SQLite databsae
     public void open() throws SQLException {
-        database = dbHelper.getWritableDatabase();
+        database = noteDbHelper.getWritableDatabase();
     }
 
     // close SQLite databse
@@ -41,14 +41,14 @@ public class NoteDAO {
     // Insert new note into DB
     public NoteModel createNote(NoteModel noteModel){
         ContentValues contentValues = new ContentValues();
-        contentValues.put(DBHelper.COLUMN_TITLE, noteModel.getTitle());
-        contentValues.put(DBHelper.COLUMN_NOTE, noteModel.getNote());
-        contentValues.put(DBHelper.COLUMN_DATE, noteModel.getTimestamp());
-        contentValues.put(DBHelper.COLUMN_LAT, noteModel.getLat());
-        contentValues.put(DBHelper.COLUMN_LON, noteModel.getLon());
+        contentValues.put(NoteDBHelper.COLUMN_TITLE, noteModel.getTitle());
+        contentValues.put(NoteDBHelper.COLUMN_NOTE, noteModel.getNote());
+        contentValues.put(NoteDBHelper.COLUMN_DATE, noteModel.getTimestamp());
+        contentValues.put(NoteDBHelper.COLUMN_LAT, noteModel.getLat());
+        contentValues.put(NoteDBHelper.COLUMN_LON, noteModel.getLon());
 
-        long insertId = database.insert(DBHelper.TABLE_NOTES, null, contentValues);
-        Cursor cursor = database.query(DBHelper.TABLE_NOTES, columns, DBHelper.COLUMN_ID + " = "
+        long insertId = database.insert(NoteDBHelper.TABLE_NOTES, null, contentValues);
+        Cursor cursor = database.query(NoteDBHelper.TABLE_NOTES, columns, NoteDBHelper.COLUMN_ID + " = "
                 + insertId, null, null, null, null);
         cursor.moveToFirst();
         NoteModel newNote = cursorToNote(cursor);
@@ -59,15 +59,15 @@ public class NoteDAO {
     // Delete note from DB
     public void deleteNote(NoteModel noteModel){
         long id = noteModel.getId();
-        database.delete(DBHelper.TABLE_NOTES, DBHelper.COLUMN_ID + " = " + id, null);
+        database.delete(NoteDBHelper.TABLE_NOTES, NoteDBHelper.COLUMN_ID + " = " + id, null);
         Log.d(TAG, "Note with id: " + id + " deleted.");
     }
 
     // Return a list of all notes in DB
     public List<NoteModel> getAllNotes(){
-        List<NoteModel> notes = new ArrayList<NoteModel>();
+        List<NoteModel> notes = new ArrayList<>();
 
-        Cursor cursor = database.query(DBHelper.TABLE_NOTES, columns, null, null, null, null, null);
+        Cursor cursor = database.query(NoteDBHelper.TABLE_NOTES, columns, null, null, null, null, null);
         cursor.moveToFirst();
 
         // loop through the cursor

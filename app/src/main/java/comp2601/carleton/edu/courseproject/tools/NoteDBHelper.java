@@ -9,8 +9,8 @@ import android.util.Log;
  * Created by quinnbudan on 2017-03-29.
  */
 
-public class DBHelper extends SQLiteOpenHelper {
-    private static final String TAG = "DBHelper";
+public class NoteDBHelper extends SQLiteOpenHelper {
+    private static final String TAG = "NoteDBHelper";
 
     public static final String TABLE_NOTES = "notes";
     public static final String COLUMN_ID = "_id";
@@ -29,7 +29,7 @@ public class DBHelper extends SQLiteOpenHelper {
             + COLUMN_NOTE + " text not null, " + COLUMN_DATE + " text not null, "
             + COLUMN_LAT + " real not null, " + COLUMN_LON + " real not null);";
 
-    public DBHelper(Context context){
+    public NoteDBHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -44,5 +44,11 @@ public class DBHelper extends SQLiteOpenHelper {
                 ", this will destroy all data");
         database.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES);
         onCreate(database);
+    }
+
+    public void clearDatabase(SQLiteDatabase database){
+        if(database.isOpen()) {
+            database.execSQL("DROP TABLE IF EXISTS " + TABLE_NOTES);
+        }
     }
 }
