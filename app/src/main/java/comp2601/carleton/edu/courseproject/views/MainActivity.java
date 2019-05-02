@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -27,7 +26,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -36,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import comp2601.carleton.edu.courseproject.Interfaces.MapClickDelegate;
 import comp2601.carleton.edu.courseproject.Interfaces.Observer;
@@ -46,15 +45,13 @@ import comp2601.carleton.edu.courseproject.tools.ImageHelper;
 import comp2601.carleton.edu.courseproject.tools.InfoWindowAdapter;
 import comp2601.carleton.edu.courseproject.tools.LocationHelper;
 import comp2601.carleton.edu.courseproject.tools.MapClickListener;
-import comp2601.carleton.edu.courseproject.tools.NoteDAO;
+import comp2601.carleton.edu.courseproject.tools.MarkerHelper;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback, Observer, MapClickDelegate {
     // constants
     private static final String TAG = "MainActivity";
     private static final int IMG_CAPTURE_REQUEST_CODE = 1;
-    private static final double SHIFT_DISTANCE = 0.00025;
     public static final int ZOOM_LEVEL = 16;
-    public static final String PICTURE_MARKER_CONSTANT = "PICTURE";
     public static final String INTENT_FILE_KEY = "IMAGE_PATH";
     public static final String INTENT_NOTE_KEY = "NOTE_MODEL";
 
@@ -74,13 +71,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private NoteFragment currentNoteFragment;
     private boolean canUseCamera = false;
     private String currentImgPath = "";
-    private ArrayList<String> filePathsFromExtDir;
     private ArrayList<Marker> markers;
     private LocationManager locationManager;
     private HashMap<Marker, Bitmap> markerImages;
     private HashMap<Marker, NoteModel> markerNoteModels;
     private ArrayList<NoteModel> notesFromDb;
     private LocationHelper locationHelper;
+    private MarkerHelper markerHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +94,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         markerImages = new HashMap<>();
         markerNoteModels = new HashMap<>();
+        markerHelper = new MarkerHelper();
         imageHelper = new ImageHelper(getApplicationContext(), locationHelper);
         infoWindowAdapter = new InfoWindowAdapter(getApplicationContext(), markerImages);
 
@@ -199,46 +197,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     // read images from external memory
     private void readImgsFromDir(){
-        File[] allFiles;
-        File dir = new File(Environment.getExternalStorageDirectory(), "Mapper Images");
-        if(dir.isDirectory()){
-            allFiles = dir.listFiles();
-            if(allFiles == null){
-                Log.e(TAG, "Files not there!");
-                return;
-            }
-            for(File file : allFiles){
-                if(filePathsFromExtDir == null){
-                    filePathsFromExtDir = new ArrayList<>();
-                }
-                filePathsFromExtDir.add(file.getPath());
-            }
-            for(int i = 0; i < filePathsFromExtDir.size(); i++){
-                DecodeImgTask decodeImgTask = new DecodeImgTask(getApplicationContext());
-                decodeImgTask.subscribe(this);
-                decodeImgTask.execute(filePathsFromExtDir.get(i));
-            }
-        }
+        markerHelper.readImagesFromStorage(this);
     }
 
     // read the notes from the SQLite DB
     private void readNotesFromDB(){
-        NoteDAO dao = new NoteDAO(getApplicationContext());
-        try{
-            dao.open();
-            notesFromDb = (ArrayList< NoteModel>)dao.getAllNotes();
-            dao.close();
-        } catch (Exception e){
-            Log.e(TAG, e.getMessage());
-            e.printStackTrace();
-        }
-        if(notesFromDb == null){
-            notesFromDb = new ArrayList<>();
-        }
-        for(int i = 0; i < notesFromDb.size(); i++){
-            addNoteMarker(notesFromDb.get(i));
-        }
-        Log.e(TAG, notesFromDb.toString());
+        markerHelper.readNotesFromDB(this);
     }
 
     // add a picture marker to the map
@@ -246,45 +210,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         if(mMap == null){
             return;
         }
-        /* DEMO CODE FOR NOW */
-        // Ottawa: 45.42, -75.70
-        // Toronto: 43.65, -79.38
-        LatLng latLng;
 
-        if(!metadata.get(DecodeImgTask.LON).equals("NULL") &&
-                !metadata.get(DecodeImgTask.LAT).equals("NULL")){
-            String lonDMS = metadata.get(DecodeImgTask.LON);
-            String latDMS = metadata.get(DecodeImgTask.LAT);
-            String lonDir = metadata.get(DecodeImgTask.LON_DIR);
-            String latDir = metadata.get(DecodeImgTask.LAT_DIR);
-
-            double lon = ImageHelper.DMStoDec(lonDMS, lonDir);
-            double lat = ImageHelper.DMStoDec(latDMS, latDir);
-
-            Log.d(TAG, "PARSED LAT: " + lat + " LON: " + lon);
-            latLng = new LatLng(lat, lon);
-        } else {
-            latLng = new LatLng(43.65, -79.38);
-        }
-
-        if(markers == null){
-            markers = new ArrayList<>();
-        }
-
-        // shiftDistance = 0.00025 IS A GOOD MARGIN
-        for(int i = 0; i < markers.size(); i++){
-            if(markers.get(i).getPosition().equals(latLng)){
-                double lat = latLng.latitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                double lng = latLng.longitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                latLng = new LatLng(lat, lng);
-            }
-        }
-        MarkerOptions marker = new MarkerOptions().position(latLng).title(PICTURE_MARKER_CONSTANT);
-        marker.snippet(metadata.get(DecodeImgTask.TIMESTAMP));
-        marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
-
-        Marker newMarker = mMap.addMarker(marker);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL));
+        MarkerOptions markerOptions = markerHelper.buildImageMarkerOption(metadata, getCurrentMarkerPositions());
+        Marker newMarker = mMap.addMarker(markerOptions);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newMarker.getPosition(), ZOOM_LEVEL));
         markerImages.put(newMarker, img);
         infoWindowAdapter.updateMarkerImageMap(markerImages);
         mapClickListener.updatePictureMarker(newMarker, path);
@@ -292,33 +221,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // add a note marker to the map
-    private void addNoteMarker(NoteModel noteModel){
+    public void addNoteMarker(NoteModel noteModel){
         Log.d(TAG, "addNoteMarker");
         if(mMap == null){
            return;
         }
-        LatLng latLng = new LatLng(noteModel.getLat(), noteModel.getLon());
         if(markers == null){
             markers = new ArrayList<>();
         }
 
-        // shiftDistance = 0.00025 IS A GOOD MARGIN
-        for(int i = 0; i < markers.size(); i++){
-            if(markers.get(i).getPosition().equals(latLng)){
-                double lat = latLng.latitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                double lng = latLng.longitude + (Math.random() * SHIFT_DISTANCE - SHIFT_DISTANCE);
-                latLng = new LatLng(lat, lng);
-            }
-        }
-
-        MarkerOptions marker = new MarkerOptions().position(latLng).title(noteModel.getTitle())
-                .snippet(noteModel.getNote() + "\n" + noteModel.getTimestamp())
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        Marker newMarker = mMap.addMarker(marker);
+        MarkerOptions markerOptions = markerHelper.buildNoteMarkerOption(noteModel, getCurrentMarkerPositions());
+        Marker newMarker = mMap.addMarker(markerOptions);
         markerNoteModels.put(newMarker, noteModel);
         markers.add(newMarker);
         mapClickListener.updateNoteMarker(newMarker, noteModel);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newMarker.getPosition(), ZOOM_LEVEL));
+    }
+
+    private List<LatLng> getCurrentMarkerPositions(){
+        List<LatLng> markerPositions = new ArrayList<>();
+        for(Marker marker: markers){
+            markerPositions.add(marker.getPosition());
+        }
+        return markerPositions;
     }
 
     /**
@@ -443,7 +368,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                             "app to work.", Toast.LENGTH_LONG).show();
                     didKillApp = true;
                     killApp();
-                    finishAndRemoveTask();
                     break;
                 }
             }
@@ -484,7 +408,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /* MapClickDelegate methods -- the click listener already removes markers
-        from the map, DB, and memory
+        from the map and DB/storage
     */
     @Override
     public void removeNoteMarker(Marker marker) {

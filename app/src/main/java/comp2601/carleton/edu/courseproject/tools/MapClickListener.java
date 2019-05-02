@@ -62,7 +62,7 @@ public class MapClickListener implements GoogleMap.OnMapLongClickListener,
         for(final Marker marker: markers){
             if(bounds.contains(marker.getPosition())){
                 //Log.e(TAG, "Found it");
-                if(marker.getTitle().equals(MainActivity.PICTURE_MARKER_CONSTANT)){
+                if(marker.getTitle().equals(MarkerHelper.PICTURE_MARKER_CONSTANT)){
                     // delete picture
                     AlertDialog.Builder dialog = new AlertDialog.Builder(context);
                     dialog.setTitle("Delete Picture");
